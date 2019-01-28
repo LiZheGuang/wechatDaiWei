@@ -3,8 +3,6 @@ const Wechat = require('wechat4u')
 const qrcode = require('qrcode-terminal')
 const fs = require('fs')
 const schedule = require('node-schedule');
-
-const request = require('request')
 let wechatMsg = require('./controller/wechatMsg')
 let wechatData = {
     UserName: ""
