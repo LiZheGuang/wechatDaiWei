@@ -2,8 +2,8 @@
 const Wechat = require('wechat4u')
 const qrcode = require('qrcode-terminal')
 const fs = require('fs')
-const schedule = require('node-schedule');
-let wechatMsg = require('./controller/wechatMsg')
+let artifact = require('./moduleClass/wechatComments')
+
 let wechatData = {
     UserName: ""
 }
@@ -18,13 +18,16 @@ module.exports.test = async () => {
     } catch (e) {
         console.log(e)
         bot = new Wechat()
+
     }
+
     /**
      * 启动机器人
      */
     if (bot.PROP.uin) {
         // 存在登录数据时，可以随时调用restart进行重启
         bot.restart()
+
     } else {
         bot.start()
     }
@@ -47,13 +50,26 @@ module.exports.test = async () => {
         fs.writeFileSync('./sync-data.json', JSON.stringify(bot.botData))
         console.log('要延时发送消息')
         let ToUserName = wechatData.UserName
-        artifact.loginMsg(ToUserName)
-        artifact.forecast(ToUserName)
+        artifact.loginMsg(ToUserName, bot)
+        artifact.forecast(ToUserName, bot)
+        artifact.msgSchdule(ToUserName, bot)
     })
-
     /**
- * 联系人更新事件，参数为被更新的联系人列表
- */
+     * 错误事件，参数一般为Error对象
+     */
+    bot.on('error', err => {
+        console.error('错误：', err)
+        try {
+            fs.unlinkSync('./sync-data.json');
+            console.log('已成功删除 sync-data.json');
+        } catch (err) {
+            // 处理错误
+
+        }
+    })
+    /**
+     * 联系人更新事件，参数为被更新的联系人列表
+     */
     bot.on('contacts-updated', contacts => {
         // console.log(contacts)
         // console.log('联系人数量：', Object.keys(bot.contacts).length)
@@ -64,45 +80,30 @@ module.exports.test = async () => {
         })
         // console.log('李哲广的测试群为' + wechatData.UserName)
     })
-}
-
-class comments {
-    async loginMsg(ToUserName) {
-        let loginMsg = `hello，大家好，我是DaWei，我会每天定时推送，舞阳，郑州，北京的天气（陆续功能后续会持续开发） `
-        bot.sendMsg(loginMsg, ToUserName)
-            .catch(err => {
-                bot.emit('error', err)
-            })
-
-    }
     /**
-     * msg:天气预报
-     * @param  string { ToUserName } 你要发送给谁
+     * msg:处理会话消息
      */
-    async forecast(ToUserName) {
-        schedule.scheduleJob('30 7 0 0 * *', async () => {
-            let cityAttr = ['舞阳县', '郑州市', '北京市']
-            for (let i = 0; i < cityAttr.length; i++) {
-                // console.log(i)
-                console.log(cityAttr[i])
-                let weatherRes = await wechatMsg.weather(cityAttr[i])
-                let weather = weatherRes.weather
+    bot.on('message', msg => {
+        switch (msg.MsgType) {
+            case bot.CONF.MSGTYPE_TEXT:
+                /**
+                 * 文本消息
+                 */
+                console.log(msg.Content)
+                var reg = newRegExp("^.*短信.*$");
+                let loginMsg = artifact.pigNote()
 
-                console.log(weatherRes)
-                let loginMsg =
-                    `【当前城市：${weather.data.city}】
-                                气温 ：${weather.data.now[0].now_temperature}
-                                风向 : ${weather.data.now[0].now_wind_direction + weather.data.now[0].now_wind_power}
-                                体感温度 : ${weather.data.now[0].now_feelst}
-                                相对湿度 : ${weather.data.now[0].now_humidity}`
+                if (loginMsg.match(reg)) {
+                    bot.sendMsg(loginMsg, wechatData.UserName)
+                        .catch(err => {
+                            bot.emit('error', err)
+                        })
+                }
 
-                bot.sendMsg(loginMsg, ToUserName)
-                    .catch(err => {
-                        bot.emit('error', err)
-                    })
-            }
-        });
-    }
+                break
+        }
+    })
 }
-let artifact = new comments()
+
+
 module.exports.test()
