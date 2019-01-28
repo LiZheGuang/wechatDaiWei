@@ -16,6 +16,7 @@ module.exports.test = async () => {
     try {
         bot = new Wechat(require('./sync-data.json'))
     } catch (e) {
+        console.log(e)
         bot = new Wechat()
     }
     /**
