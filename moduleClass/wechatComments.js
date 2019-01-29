@@ -48,6 +48,10 @@ class comments {
                 })
         })
     }
+    async daiweiTulingMsg(msg){
+        let tulingRes = await wechatMsg.tulingMsg(msg)
+        console.log(tulingRes)
+    }
     pigNote() {
         let msgPig = [
             '猪年的歌声飘荡着团圆的喜气，猪年的烛光摇曳着快乐的福气，猪年的道路绵延着不竭的财气，猪年的灯笼照耀着万千的瑞气。猪年到了，愿你一年到头都有好运气！',

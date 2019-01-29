@@ -3,7 +3,6 @@ const Wechat = require('wechat4u')
 const qrcode = require('qrcode-terminal')
 const fs = require('fs')
 let artifact = require('./moduleClass/wechatComments')
-
 let wechatData = {
     UserName: ""
 }
@@ -89,20 +88,29 @@ module.exports.test = async () => {
                 /**
                  * 文本消息
                  */
-                console.log(msg.Content)
-                var reg = newRegExp("^.*短信.*$");
-                let loginMsg = artifact.pigNote()
 
-                if (loginMsg.match(reg)) {
+                let loginMsg = artifact.pigNote()
+                if (reg('短信',msg.Content)) {
                     bot.sendMsg(loginMsg, wechatData.UserName)
                         .catch(err => {
                             bot.emit('error', err)
                         })
-                }
+                }else if(reg('daiwei',msg.Content)){
+                    artifact.daiweiTulingMsg(loginMsg)
+                }else{
 
+                }
                 break
         }
     })
+}
+
+function reg(regData,content){
+    console.log(regData)
+    console.log(content)
+    let regMsg = new RegExp(regData)
+    console.log(regMsg.test(content))
+    return regMsg.test(content)
 }
 
 
